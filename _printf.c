@@ -26,6 +26,14 @@ void handle_conversion(const char **format, va_list args, int *count)
 			print_string(arg, count);
 			break;
 		}
+		case 'd':
+		case 'i':
+		{
+			int arg = va_arg(args, int);
+
+			print_integer(arg, count);
+			break;
+		}
 		case '%':
 		{
 			char percent = '%';

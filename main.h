@@ -8,5 +8,6 @@
 int _printf(const char *format, ...);
 void print_char(char c, int *count);
 void print_string(const char *str, int *count);
+void print_integer(int n, int *count);
 
 #endif
