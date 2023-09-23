@@ -1,66 +1,85 @@
 #include "main.h"
 
-void printBuffer(char buffer[], int *buffInd);
-
 /**
- * _printf - Custom printf function
- * @format: Format string
- * Return: Number of characters printed
+ * handle_conversion - Handles the conversion specifier
+ * @format: Pointer to the current position in the format string
+ * @args: The va_list of arguments
+ * @count: Pointer to the count of characters printed
  */
-int _printf(const char *format, ...)
+void handle_conversion(const char **format, va_list args, int *count)
 {
-	int i, printed = 0, printed_chars = 0;
-	int flags, width, precision, size, buffInd = 0;
-	va_list list;
-	char buffer[BUFF_SIZE];
+	(*format)++;
 
-	if (format == NULL)
-		return (-1);
-
-	va_start(list, format);
-
-	for (i = 0; format && format[i] != '\0'; i++)
+	switch (**format)
 	{
-		if (format[i] != '%')
+		case 'c':
 		{
-			buffer[buffInd++] = format[i];
-			if (buffInd == BUFF_SIZE)
-				printBuffer(buffer, &buffInd);
-			/* write(1, &format[i], 1);*/
-			printed_chars++;
+			int arg = va_arg(args, int);
+
+			print_char(arg, count);
+			break;
 		}
-		else
+		case 's':
 		{
-			printBuffer(buffer, &buffInd);
-			flags = get_flags(format, &i);
-			width = get_width(format, &i, list);
-			precision = get_precision(format, &i, list);
-			size = get_size(format, &i);
-			++i;
-			printed = handle_print(format, &i, list, buffer,
-				flags, width, precision, size);
-			if (printed == -1)
-				return (-1);
-			printed_chars += printed;
+			const char *arg = va_arg(args, const char *);
+
+			print_string(arg, count);
+			break;
 		}
+		case '%':
+		{
+			char percent = '%';
+
+			print_char(percent, count);
+			break;
+		}
+		default:
+			break;
 	}
-
-	printBuffer(buffer, &buffInd);
-
-	va_end(list);
-
-	return (printed_chars);
 }
 
 /**
- * printBuffer - Prints the contents of the buffer if it exists
- * @buffer: Character array containing the buffer
- * @buffInd: Pointer to the index representing the length of the buffer
+ * print_format - Prints the formatted output
+ * @format: The format string
+ * @args: The va_list of arguments
+ * @count: Pointer to the count of characters printed
  */
-void printBuffer(char buffer[], int *buffInd)
+void print_format(const char *format, va_list args, int *count)
 {
-	if (*buffInd > 0)
-		write(1, &buffer[0], *buffInd);
+	while (*format != '\0')
+	{
+		if (*format == '%')
+		{
+			handle_conversion(&format, args, count);
+		}
+		else
+		{
+			print_char(*format, count);
+		}
 
-	*buffInd = 0;
+		format++;
+	}
+}
+
+/**
+ * _printf - Prints formatted output to stdout
+ * @format: The format string
+ *
+ * Return: The number of characters printed
+ */
+int _printf(const char *format, ...)
+{
+	int count;
+
+	va_list args;
+
+	va_start(args, format);
+
+	count = 0;
+
+	print_format(format, args, &count);
+
+	va_end(args);
+
+	return (count);
 }
